@@ -1,8 +1,8 @@
 import mongoose from 'mongoose'
 
 
-const postSchema =
-  ({
+const postSchema = new mongoose.Schema(
+  {
     _id: {
       type: String,
     },
@@ -17,18 +17,18 @@ const postSchema =
       type: String,
     },
     km: {
-      type:Number,
+      type: Number,
     },
     carSeats: {
-      type:Number,
+      type: Number,
     },
     fuelType: {
       type: String,
-      enum: ['gas', 'electric',]
-    }, 
+      enum: ['gas', 'electric'],
+    },
     gearBoxType: {
       type: String,
-      enum: ['manual' , 'automatic',]
+      enum: ['manual', 'automatic'],
     },
     description: {
       type: String,
@@ -38,17 +38,16 @@ const postSchema =
       enum: ['4x4', 'coupé'],
     },
     sellerId: {
-      type:String,
-  }, /*(ref tabla user)*/
+      type: String,
+    } /*(ref tabla user)*/,
     status: {
       type: String,
       enum: ['oculto', 'activo'],
     },
   },
 
-    { collection: 'posts' }
-  
-  )
+  { collection: 'posts' }
+)
 
 
 const Post = mongoose.model('Post', postSchema)

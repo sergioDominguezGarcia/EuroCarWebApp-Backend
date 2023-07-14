@@ -1,6 +1,8 @@
 import express from "express"
 import bodyParser from "body-parser"
 import cors from "cors";
+import postsRouter from "./src/router/post.js"
+import usersRouter from './src/router/user.js'
 import dotenv from "dotenv"
 dotenv.config();
 
@@ -20,6 +22,10 @@ app.use(
 app.get("/", (request, response) => {
   response.json({info: "hola mundo"})
 })
+
+
+app.use("/posts", postsRouter)
+app.use('/users', usersRouter)
 
 
 
