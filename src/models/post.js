@@ -3,18 +3,21 @@ import mongoose from 'mongoose'
 
 const postSchema = new mongoose.Schema(
   {
-    _id: {
-      type: String,
-    },
     name: {
       type: String,
+      require: true,
     },
-    type: 'car' | 'motorcycle' | 'van',
+    type: {
+      type: String,
+      enum: ['car', 'motorcycle', 'van'],
+      require: true,
+    },
     model: {
       type: String,
     },
     plateNumber: {
       type: String,
+      require: true,
     },
     km: {
       type: Number,
