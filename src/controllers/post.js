@@ -197,7 +197,6 @@ export const updatePost = async (id, data) => {
 }
 
 /**
- *
  * @param {string} id
  * @return {Promise<boolean>}
  */
