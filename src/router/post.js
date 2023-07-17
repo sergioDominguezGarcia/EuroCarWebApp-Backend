@@ -9,51 +9,52 @@ import {
 
 const router = express.Router()
 
-router.get('/', (request, response) => {
-  try{  const posts = getPosts()
-  response.json({ posts })
-}catch (e) {
+router.get('/', async (request, response) => {
+  try {
+    const posts = await getPosts()
+    response.json({ posts })
+  } catch (e) {
     response.status(500).json(e.message)
   }
 })
 
-router.get('/:id', (request, response) => {
-  try { 
-    const post = getPostById(request.params.id)
-  response.json({ post })
+router.get('/:id', async (request, response) => {
+  try {
+    const post = await getPostById(request.params.id)
+    response.json({ post })
   } catch (e) {
     response.status(500).json(e.message)
   }
-
 })
 
 router.post('/', async (request, response) => {
   try {
-    const createdPost = await createPost(request.body)
+    const createdPost = await createPost({
+      ...request.body,
+      sellerId: request.user._id,
+    })
     response.json({ post: createdPost })
   } catch (e) {
     response.status(500).json(e.message)
   }
 })
 
-router.put('/:id', (request, response) => {
+router.put('/:id', async (request, response) => {
   try {
-    const updatedPost = updatePost(request.params.id, request.body)
+    const updatedPost = await updatePost(request.params.id, request.body)
     response.json({ from: 'server', post: updatedPost })
   } catch (e) {
     response.status(500).json(e.message)
   }
-
 })
 
-router.delete('/:id', (request, response) => {
+router.delete('/:id', async (request, response) => {
   try {
-    removePostById(request.params.id)
+    await removePostById(request.params.id)
     response.json({ removed: true })
   } catch (e) {
     response.status(500).json(e.message)
   }
-
 })
 
 export default router

@@ -28,12 +28,27 @@ export const login = async ({ email, password }) => {
 }
 
 /**
+ * @param {string} firstName
+ * @param {string} lastName
+ * @param {date} age
+ * @param {"seller" | "customer"} rol
  * @param {string} email
  * @param {string} password
+ * @param {number} phone
+ * @param {string} document
  * @return {Promise<string>}
  */
-export const signup = async ({ email, password }) => {
-  if (!email || !password) {
+export const signup = async ({ 
+  email, 
+  password, 
+  rol,
+  firstName,
+  lastName,
+  age,
+  phone,
+  document
+  }) => {
+  if (!email || !password || !rol) {
     throw new Error('Miss some fields')
   }
 

@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema(
     },
     salt: {
       type: Number,
+      require: true,
     },
     document: {
       type: String,

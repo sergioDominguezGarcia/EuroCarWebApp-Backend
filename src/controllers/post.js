@@ -1,15 +1,15 @@
 import Post from '../models/post.js'
 
 /**
- * @return {[{name:string}, {name:string}, {name:string}]}
+ * @return {Promise<object[]>}
  */
-export const getPosts = () => {
+export const getPosts = async () => {
   return Post.find()
 }
 
 /**
  * @param {string} id
- * @returns {{name: string, id: string}}
+ * @return {Promise<object>}
  */
 export const getPostById = async (id) => {
   const post = await Post.findOne({ _id: id })
@@ -36,7 +36,7 @@ export const getPostById = async (id) => {
  * @param {string} data.sellerId
  * @param {"oculto" | "activo"} data.status
  * @param {string} data.name
- * @return {*}
+ * @return {Promise<object>}
  */
 export const createPost = async ({
   name,
@@ -52,7 +52,7 @@ export const createPost = async ({
   sellerId,
   status,
 }) => {
-  if (!name || !type || !plateNumber) {
+  if (!name || !type || !plateNumber || !sellerId) {
     throw new Error('Missing required fields')
   }
 
@@ -66,24 +66,23 @@ export const createPost = async ({
     throw new Error('This post already exist!')
   }
 
-  const validFuelType = ["gas", "electric"]
-  if(fuelType && !validFuelType.includes(fuelType)){
-    throw new Error("invalid fuel type")
+  const validFuelType = ['gas', 'electric']
+  if (fuelType && !validFuelType.includes(fuelType)) {
+    throw new Error('invalid fuel type')
   }
 
-
-  const validGearBoxType = ["manual", "automatic"]
-  if (gearBoxType && !validGearBoxType.includes(gearBoxType)){
+  const validGearBoxType = ['manual', 'automatic']
+  if (gearBoxType && !validGearBoxType.includes(gearBoxType)) {
     throw new Error('invalid gear box type')
   }
 
-  const validStyle = ["4x4", "coupé", "sedan", "compact"]
-  if(style && !validStyle.includes(style)){
-    throw new Error('invalid style')    
+  const validStyle = ['4x4', 'coupé', 'sedan', 'compact']
+  if (style && !validStyle.includes(style)) {
+    throw new Error('invalid style')
   }
 
-  const validStatus = ["oculto", "activo"]
-  if(status && !validStatus.includes(status)){
+  const validStatus = ['oculto', 'activo']
+  if (status && !validStatus.includes(status)) {
     throw new Error('invalid status')
   }
 
@@ -106,26 +105,104 @@ export const createPost = async ({
 }
 
 /**
- * @param {string} id
  * @param {object} data
- * @return {*&{id}}
+ * @param {string} data.name
+ * @param {"car" | "motorcycle" | "van"} data.type
+ * @param {string} data.model
+ * @param {string} data.plateNumber
+ * @param {number} data.km
+ * @param {number} data.carSeats
+ * @param {"gas" | "electric" } data.fuelType
+ * @param {"manual" | "automatic" } data.gearBoxType
+ * @param {string} data.description
+ * @param {"4x4" | "coupé" | "sedan" | "compact" } data.style
+ * @param {string} data.sellerId
+ * @param {"oculto" | "activo"} data.status
+ * @param {string} data.name
+ * @return {Promise<object>}
  */
-export const updatePost = (id, data) => {
-  /** Logic of DB*/
+export const updatePost = async (id, data) => {
+  const {
+    name,
+    type,
+    model,
+    plateNumber,
+    km,
+    carSeats,
+    fuelType,
+    gearBoxType,
+    description,
+    style,
+    sellerId,
+    status,
+  } = data
 
-  return {
-    id,
-    ...data,
+  const post = await getPostById(id)
+
+  if (name) {
+    post.name = name
   }
+
+  if (plateNumber) {
+    post.plateNumber = plateNumber
+  }
+
+  const validPostType = ['car', 'motorcycle', 'van']
+  if (type) {
+    if (!validPostType.includes(type)) {
+      throw new Error('This is not valid type ')
+    } else {
+      post.type = type
+    }
+  }
+
+  const validFuelType = ['gas', 'electric']
+  if (fuelType) {
+    if (fuelType && !validFuelType.includes(fuelType)) {
+      throw new Error('invalid fuel type')
+    } else {
+      post.fuelType = fuelType
+    }
+  }
+
+  const validGearBoxType = ['manual', 'automatic']
+  if (gearBoxType) {
+    if (gearBoxType && !validGearBoxType.includes(gearBoxType)) {
+      throw new Error('invalid gear box type')
+    } else {
+      post.gearBoxType = gearBoxType
+    }
+  }
+
+  const validStyle = ['4x4', 'coupé', 'sedan', 'compact']
+  if (style) {
+    if (style && !validStyle.includes(style)) {
+      throw new Error('invalid style')
+    } else {
+      post.style = style
+    }
+  }
+
+  const validStatus = ['oculto', 'activo']
+  if (status) {
+    if (status && !validStatus.includes(status)) {
+      throw new Error('invalid status')
+    } else {
+      post.status = status
+    }
+  }
+
+  await post.save()
+  return post
 }
 
 /**
  *
  * @param {string} id
- * @return {boolean}
+ * @return {Promise<boolean>}
  */
-export const removePostById = (id) => {
-  /** Logic of DB*/
+export const removePostById = async (id) => {
+  await Post.deleteOne({ _id: id })
   console.log(id)
   return true
 }
