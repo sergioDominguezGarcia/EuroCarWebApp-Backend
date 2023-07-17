@@ -3,9 +3,6 @@ import mongoose from 'mongoose'
 
 const userSchema = new mongoose.Schema(
   {
-    _id: {
-      type: String,
-    },
     firstName: {
       type: String,
     },
@@ -29,7 +26,6 @@ const userSchema = new mongoose.Schema(
     },
     phone: {
       type: Number,
-      require: true,
     },
     password: {
       type: String,
@@ -37,10 +33,10 @@ const userSchema = new mongoose.Schema(
     },
     salt: {
       type: Number,
+      require: true,
     },
     document: {
       type: String,
-      require: true,
     },
   },
   { collection: 'users' }

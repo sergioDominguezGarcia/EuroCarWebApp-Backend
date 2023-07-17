@@ -3,18 +3,21 @@ import mongoose from 'mongoose'
 
 const postSchema = new mongoose.Schema(
   {
-    _id: {
-      type: String,
-    },
     name: {
       type: String,
+      require: true,
     },
-    type: 'car' | 'motorcycle' | 'van',
+    type: {
+      type: String,
+      enum: ['car', 'motorcycle', 'van'],
+      require: true,
+    },
     model: {
       type: String,
     },
     plateNumber: {
       type: String,
+      require: true,
     },
     km: {
       type: Number,
@@ -35,11 +38,13 @@ const postSchema = new mongoose.Schema(
     },
     style: {
       type: String,
-      enum: ['4x4', 'coupé'],
+      enum: ['4x4', 'coupé', 'sedan', 'compact'],
     },
     sellerId: {
-      type: String,
-    } /*(ref tabla user)*/,
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "User",
+      require: true,
+    },
     status: {
       type: String,
       enum: ['oculto', 'activo'],
