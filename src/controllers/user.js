@@ -26,11 +26,10 @@ export const getUserById = async (id) => {
 }
 
 /**
- *
  * @param {string} id
  * @returns {Promise<boolean>}
  */
-export const removeUserById = async (id) => {
+export const deleteUserById = async (id) => {
   await User.deleteOne({ _id: id })
 
   return true
