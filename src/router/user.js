@@ -7,5 +7,4 @@ router.get('/users/:id', (request, response) => {
 })
 
 
-
 export default router
