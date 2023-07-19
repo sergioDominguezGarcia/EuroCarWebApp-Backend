@@ -1,5 +1,8 @@
 import Post from '../models/post.js'
+import User from '../models/user.js'
 
+
+//Get all posts controller
 /**
  * @return {Promise<object[]>}
  */
@@ -7,6 +10,7 @@ export const getPosts = async () => {
   return Post.find()
 }
 
+//Get post by id controller
 /**
  * @param {string} id
  * @return {Promise<object>}
@@ -21,6 +25,7 @@ export const getPostById = async (id) => {
   return post
 }
 
+//Create post controller
 /**
  * @param {object} data
  * @param {string} data.name
@@ -104,6 +109,8 @@ export const createPost = async ({
   return post.save()
 }
 
+
+//Update post controller
 /**
  * @param {object} data
  * @param {string} data.name
@@ -196,12 +203,40 @@ export const updatePost = async (id, data) => {
   return post
 }
 
+//Delete post controller
 /**
  * @param {string} id
  * @return {Promise<boolean>}
  */
-export const removePostById = async (id) => {
+export const deletePostById = async (id) => {
   await Post.deleteOne({ _id: id })
   console.log(id)
   return true
+}
+
+//Favorite post controller
+/**
+ * @param {string} id
+ * @param {object} user
+ * @param {object[]} user.favPosts
+ */
+export const togglePostFavByUser = async (id, user) => {
+  if (!id) {
+    throw new Error('id is required')
+  } 
+  const post = await getPostById(id)
+  const currentFavs = user.favPosts || []
+  const existedFav = currentFavs.find(
+    (currentId) => currentId.toString() === id.toString()
+  )
+
+  let newFavList = []
+  if (!existedFav) {
+    newFavList = [...currentFavs, id]
+  } else {
+    newFavList = currentFavs.filter(
+      (currentId) => currentId.toString() !== id.toString()
+    )
+  }
+  await User.updateOne({ _id: user._id }, { favPosts: newFavList })
 }

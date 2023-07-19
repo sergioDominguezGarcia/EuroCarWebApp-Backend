@@ -3,6 +3,9 @@ import { getUsers, getUserById, deleteUserById } from '../controllers/user.js'
 
 const router = express.Router()
 
+
+
+// Get all users route
 router.get('/', async (request, response) => {
   try {
     const users = await getUsers(request.user)
@@ -12,6 +15,7 @@ router.get('/', async (request, response) => {
   }
 })
 
+// Get user by id route
 router.get('/:id', async (request, response) => {
   try {
     const user = await getUserById(request.params.id)
@@ -24,6 +28,7 @@ router.get('/:id', async (request, response) => {
   }
 })
 
+// Delete user by id route
 router.delete('/users/:id', async (request, response) => {
   try {
     await deleteUserById(request.params.id)

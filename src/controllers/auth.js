@@ -2,6 +2,7 @@ import User from '../models/user.js'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
+// Login controller
 /**
  * @param {string} email
  * @param {string} password
@@ -27,6 +28,7 @@ export const login = async ({ email, password }) => {
   return jwt.sign({ email, id: user._id }, process.env.TOKEN_SECRET)
 }
 
+// Sign up controller
 /**
  * @param {string} firstName
  * @param {string} lastName
