@@ -38,6 +38,13 @@ const userSchema = new mongoose.Schema(
     document: {
       type: String,
     },
+
+    favPosts:[
+      {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Post"
+    },
+  ],
   },
   { collection: 'users' }
 )  

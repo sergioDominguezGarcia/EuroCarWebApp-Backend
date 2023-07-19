@@ -3,6 +3,8 @@ import { login, signup } from '../controllers/auth.js'
 
 const router = express.Router()
 
+
+// Login route
 router.post("/login", async (request, response) => {
   try{
     const token = await login(request.body)
@@ -12,7 +14,7 @@ router.post("/login", async (request, response) => {
   }
 })
 
-
+// Sign up route
 router.post('/signup', async (request, response) => {
   try {
     const token = await signup(request.body)
@@ -21,6 +23,5 @@ router.post('/signup', async (request, response) => {
     response.status(500).json(e.message)
   }
 })
-
 
 export default router

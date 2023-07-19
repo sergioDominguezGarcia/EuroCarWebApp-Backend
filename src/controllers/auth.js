@@ -2,6 +2,7 @@ import User from '../models/user.js'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
+// Login controller
 /**
  * @param {string} email
  * @param {string} password
@@ -27,6 +28,7 @@ export const login = async ({ email, password }) => {
   return jwt.sign({ email, id: user._id }, process.env.TOKEN_SECRET)
 }
 
+// Sign up controller
 /**
  * @param {string} firstName
  * @param {string} lastName
@@ -38,16 +40,16 @@ export const login = async ({ email, password }) => {
  * @param {string} document
  * @return {Promise<string>}
  */
-export const signup = async ({ 
-  email, 
-  password, 
+export const signup = async ({
+  email,
+  password,
   rol,
   firstName,
   lastName,
   age,
   phone,
-  document
-  }) => {
+  document,
+}) => {
   if (!email || !password || !rol) {
     throw new Error('Miss some fields')
   }
@@ -56,12 +58,35 @@ export const signup = async ({
   if (hasUser) {
     throw new Error('Email is used')
   }
-  
-  const hashedPassword = await bcrypt.hash(password, 0)
+
+  if (phone && typeof phone !== 'number') {
+    throw new Error('Invalid characters')
+  }
+
+  if (dni && typeof dni !== 'string') {
+    throw new Error('Invalid characters')
+  }
+
+  const validRoles = ['seller', 'customer']
+  if (rol && !validRoles.includes(rol)) {
+    throw new Error(`Role must be one of ${validRoles}`)
+  }
+
+  const saltRounds = 10
+  const salt = await bcrypt.genSalt(saltRounds)
+  const hashedPassword = await bcrypt.hash(password, salt)
   const user = new User({
     email,
     password: hashedPassword,
+    rol,
+    firstName,
+    lastName,
+    age,
+    phone,
+    document,
+    salt
   })
+
   await user.save()
 
   return jwt.sign({ email, id: user._id }, process.env.TOKEN_SECRET)

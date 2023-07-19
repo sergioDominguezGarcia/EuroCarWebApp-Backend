@@ -4,11 +4,13 @@ import {
   getPostById,
   createPost,
   updatePost,
-  removePostById,
+  deletePostById,
 } from '../controllers/post.js'
+import { togglePostFavByUser } from '../controllers/post.js'
 
 const router = express.Router()
 
+// Get all posts route
 router.get('/', async (request, response) => {
   try {
     const posts = await getPosts()
@@ -18,6 +20,7 @@ router.get('/', async (request, response) => {
   }
 })
 
+// Get post by id route
 router.get('/:id', async (request, response) => {
   try {
     const post = await getPostById(request.params.id)
@@ -27,6 +30,7 @@ router.get('/:id', async (request, response) => {
   }
 })
 
+// Create post route
 router.post('/', async (request, response) => {
   try {
     const createdPost = await createPost({
@@ -39,6 +43,7 @@ router.post('/', async (request, response) => {
   }
 })
 
+// Update post route
 router.put('/:id', async (request, response) => {
   try {
     const updatedPost = await updatePost(request.params.id, request.body)
@@ -48,13 +53,25 @@ router.put('/:id', async (request, response) => {
   }
 })
 
+// Delete post route
 router.delete('/:id', async (request, response) => {
   try {
-    await removePostById(request.params.id)
-    response.json({ removed: true })
+    await deletePostById(request.params.id)
+    response.json({ deleted: true })
   } catch (e) {
     response.status(500).json(e.message)
   }
 })
+
+// Favorite post route
+router.post('/favs/:id', async (request, response) => {
+  try {
+    await togglePostFavByUser(request.params.id, request.user)
+    response.json(true)
+  } catch (error) {
+    response.status(500).json(error.message)
+  }
+})
+
 
 export default router
