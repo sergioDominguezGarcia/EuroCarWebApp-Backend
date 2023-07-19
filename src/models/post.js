@@ -49,6 +49,7 @@ const postSchema = new mongoose.Schema(
       type: String,
       enum: ['oculto', 'activo'],
     },
+    //created at
   },
 
   { collection: 'posts' }
