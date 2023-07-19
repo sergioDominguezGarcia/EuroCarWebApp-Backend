@@ -1,7 +1,7 @@
 import Post from '../models/post.js'
 import User from '../models/user.js'
-
-
+import UserPostComment from '../models/userPostComment.js'
+import UserPostValorations from '../models/userPostValoration.js'
 //Get all posts controller
 /**
  * @return {Promise<object[]>}
@@ -22,7 +22,19 @@ export const getPostById = async (id) => {
     throw new Error('Post not found')
   }
 
-  return post
+  const postValorations = await UserPostValorations.find({
+    postId: post._id,
+  })
+
+  const rating = postValorations.reduce((accumulator, current) => {
+    return accumulator + current.rate
+  }, 0)
+
+  const postComments = await UserPostComment.find({
+    postId: post._id,
+  })
+
+  return { ...post.toObject(), comments: postComments, rating: rating / 5 }
 }
 
 //Create post controller
@@ -109,7 +121,6 @@ export const createPost = async ({
   return post.save()
 }
 
-
 //Update post controller
 /**
  * @param {object} data
@@ -128,7 +139,7 @@ export const createPost = async ({
  * @param {string} data.name
  * @return {Promise<object>}
  */
-export const updatePost = async (id, data) => {
+export const updatePost = async ({ id, data, user }) => {
   const {
     name,
     type,
@@ -140,11 +151,14 @@ export const updatePost = async (id, data) => {
     gearBoxType,
     description,
     style,
-    sellerId,
     status,
   } = data
 
   const post = await getPostById(id)
+
+  if (post.sellerId !== user._id && rol !== 'admin') {
+    throw new Error('no tienes permiso')
+  }
 
   if (name) {
     post.name = name
@@ -208,9 +222,14 @@ export const updatePost = async (id, data) => {
  * @param {string} id
  * @return {Promise<boolean>}
  */
-export const deletePostById = async (id) => {
-  await Post.deleteOne({ _id: id })
-  console.log(id)
+export const deletePostById = async ({ postId, user }) => {
+  const post = await getPostById(postId)
+  if (post.sellerId !== user._id && user.rol !== 'admin') {
+    throw new Error('No tienes permiso')
+  }
+
+  await Post.deleteOne({ _id: postId })
+
   return true
 }
 
@@ -223,7 +242,7 @@ export const deletePostById = async (id) => {
 export const togglePostFavByUser = async (id, user) => {
   if (!id) {
     throw new Error('id is required')
-  } 
+  }
   const post = await getPostById(id)
   const currentFavs = user.favPosts || []
   const existedFav = currentFavs.find(
@@ -239,4 +258,57 @@ export const togglePostFavByUser = async (id, user) => {
     )
   }
   await User.updateOne({ _id: user._id }, { favPosts: newFavList })
+}
+
+// Create comment controller
+
+export const addCommentToPostByUser = async ({ postId, data, user }) => {
+  if (!data.comment) {
+    throw new Error('missing require field')
+  }
+
+  const post = await getPostById(postId)
+  const postComment = new UserPostComment({
+    customerId: user._id,
+    postId: post._id,
+    comment: data.comment,
+  })
+  await postComment.save()
+}
+
+export const deleteCommentByUser = async ({ commentId, user }) => {
+  const postComment = await UserPostComment.findOne({ _id: commentId })
+  if (!postComment) {
+    throw new Error('comment not found')
+  }
+
+  if (postComment.customerId !== user._id && user.rol !== 'admin') {
+    throw new Error("you don't have permission")
+  }
+
+  await UserPostComment.deleteOne({ _id: commentId })
+}
+
+export const addRatingToPostByUser = async ({ postId, data, user }) => {
+  if (!data.rate) {
+    throw new Error('missing require field')
+  }
+
+  const formattedRate = Number(data.rate)
+  if (isNaN(formattedRate)) {
+    throw new Error('invalid field')
+  }
+
+  if (formattedRate < 0 || formattedRate > 5) {
+    throw new Error('invalid range')
+  }
+
+  const post = await getPostById(postId)
+
+  const postRating = new UserPostValorations({
+    customerId: user._id,
+    postId: post._id,
+    rate: formattedRate
+  })
+  await postRating.save()
 }

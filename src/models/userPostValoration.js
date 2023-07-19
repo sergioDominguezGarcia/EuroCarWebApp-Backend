@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-const userPostValidationSchema = new mongoose.Schema(
+const userPostValorationSchema = new mongoose.Schema(
   {
     customerId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -14,6 +14,9 @@ const userPostValidationSchema = new mongoose.Schema(
     },
     rate: {
       type: Number,
+      require: true,
+      min: 0,
+      max: 5
     },
     createdAt: {
       type: Date,
@@ -24,8 +27,8 @@ const userPostValidationSchema = new mongoose.Schema(
   { collection: 'userPostValidations' }
 )
 
-const UserPostValidations = mongoose.model(
-  'UserPostValidations',
-  userPostValidationSchema
+const UserPostValorations = mongoose.model(
+  'UserPostValorations',
+  userPostValorationSchema
 )
-export default UserPostValidations
+export default UserPostValorations

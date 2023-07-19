@@ -38,6 +38,7 @@ const userSchema = new mongoose.Schema(
     document: {
       type: String,
     },
+    //created at
 
     favPosts:[
       {

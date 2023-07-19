@@ -5,6 +5,7 @@ import {
   createPost,
   updatePost,
   deletePostById,
+  deleteCommentByUser,
 } from '../controllers/post.js'
 import { togglePostFavByUser } from '../controllers/post.js'
 
@@ -46,8 +47,12 @@ router.post('/', async (request, response) => {
 // Update post route
 router.put('/:id', async (request, response) => {
   try {
-    const updatedPost = await updatePost(request.params.id, request.body)
-    response.json({ from: 'server', post: updatedPost })
+    const updatedPost = await updatePost({
+      id: request.params.id,
+      data: request.body,
+      user: request.user,
+    })
+    response.json(updatedPost)
   } catch (e) {
     response.status(500).json(e.message)
   }
@@ -56,7 +61,7 @@ router.put('/:id', async (request, response) => {
 // Delete post route
 router.delete('/:id', async (request, response) => {
   try {
-    await deletePostById(request.params.id)
+    await deletePostById({ postId: request.params.id, user: request.user })
     response.json({ deleted: true })
   } catch (e) {
     response.status(500).json(e.message)
@@ -67,6 +72,45 @@ router.delete('/:id', async (request, response) => {
 router.post('/favs/:id', async (request, response) => {
   try {
     await togglePostFavByUser(request.params.id, request.user)
+    response.json(true)
+  } catch (error) {
+    response.status(500).json(error.message)
+  }
+})
+
+router.post('/comments/:postId', async (request, response) => {
+  try {
+    await addCommentToPostByUser({
+      postId: request.params.postId,
+      user: request.user,
+      data: request.body,
+    })
+    response.json(true)
+  } catch (error) {
+    response.status(500).json(error.message)
+  }
+})
+
+router.delete('/comments/:commentId', async (request, response) => {
+  try {
+    await deleteCommentByUser({
+      commentId: request.params.commentId,
+      user: request.user,
+    })
+    response.json(true)
+  } catch (error) {
+    response.status(500).json(error.message)
+  }
+})
+
+
+router.post('/valorations/:postId', async (request, response) => {
+  try {
+    await addRatingToPostByUser({
+      postId: request.params.postId,
+      user: request.user,
+      data: request.body,
+    })
     response.json(true)
   } catch (error) {
     response.status(500).json(error.message)
