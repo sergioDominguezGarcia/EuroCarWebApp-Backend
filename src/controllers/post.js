@@ -37,7 +37,16 @@ export const getPostById = async (id) => {
     postId: post._id,
   })
 
-  return { ...post.toObject(), comments: postComments, rating: rating / 5 }
+  const postRequests = await UserPostRequest.find({
+    postId: post._id,
+  })
+
+  return {
+    ...post.toObject(),
+    comments: postComments,
+    rating: rating / 5,
+    requests: postRequests,
+  }
 }
 
 //Create post controller
@@ -159,6 +168,22 @@ export const updatePost = async ({ id, data, user }) => {
 
   const post = await getPostById(id)
 
+  if (model) {
+    post.model = model
+  }
+
+  if (km) {
+    post.km = km
+  }
+
+  if (carSeats) {
+    post.carSeats = carSeats
+  }
+
+  if (description) {
+    post.description = description
+  }
+
   if (post.sellerId !== user._id && rol !== 'admin') {
     throw new Error('no tienes permiso')
   }
@@ -222,12 +247,16 @@ export const updatePost = async ({ id, data, user }) => {
 
 //Delete post controller
 /**
- * @param {string} id
- * @return {Promise<boolean>}
+ * @param {string} postId
+ * @param {string} sellerId
+ * @param {object} user
+ * @param {string} user._id
+ * @param {'admin' | 'seller' | 'customer'} user.rol
+ * @returns {Promise<boolean>}
  */
 export const deletePostById = async ({ postId, user }) => {
   const post = await getPostById(postId)
-  if (post.sellerId !== user._id && user.rol !== 'admin') {
+  if (post.sellerId.toString() !== user._id && user.rol !== 'admin') {
     throw new Error('No tienes permiso')
   }
 
@@ -238,26 +267,26 @@ export const deletePostById = async ({ postId, user }) => {
 
 //Favorite post controller
 /**
- * @param {string} id
+ * @param {string} postId
  * @param {object} user
  * @param {object[]} user.favPosts
  */
-export const togglePostFavByUser = async (id, user) => {
-  if (!id) {
+export const togglePostFavByUser = async (postId, user) => {
+  if (!postId) {
     throw new Error('id is required')
   }
-  const post = await getPostById(id)
+  const post = await getPostById(postId)
   const currentFavs = user.favPosts || []
   const existedFav = currentFavs.find(
-    (currentId) => currentId.toString() === id.toString()
+    (currentId) => currentId.toString() === postId.toString()
   )
 
   let newFavList = []
   if (!existedFav) {
-    newFavList = [...currentFavs, id]
+    newFavList = [...currentFavs, postId]
   } else {
     newFavList = currentFavs.filter(
-      (currentId) => currentId.toString() !== id.toString()
+      (currentId) => currentId.toString() !== postId.toString()
     )
   }
   await User.updateOne({ _id: user._id }, { favPosts: newFavList })
@@ -287,6 +316,9 @@ export const addCommentToPostByUser = async ({ postId, data, user }) => {
 /**
  * @param {string} commentId
  * @param {object} user
+ * @param {'admin' | 'seller' | 'customer'} user.rol
+ * @param {string} user._id
+ * @returns {Promise<boolean>}
  */
 export const deleteCommentByUser = async ({ commentId, user }) => {
   const postComment = await UserPostComment.findOne({ _id: commentId })
@@ -326,11 +358,10 @@ export const addRatingToPostByUser = async ({ postId, data, user }) => {
   const postRating = new UserPostValorations({
     customerId: user._id,
     postId: post._id,
-    rate: formattedRate
+    rate: formattedRate,
   })
   await postRating.save()
 }
-
 
 // Add request & update request
 /**

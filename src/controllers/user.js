@@ -1,5 +1,6 @@
 import User from '../models/user.js'
 
+
 // Get all users controller (only admin)
 /**
  * @returns {Promise<object>}
