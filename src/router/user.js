@@ -3,8 +3,6 @@ import { getUsers, getUserById, deleteUserById } from '../controllers/user.js'
 
 const router = express.Router()
 
-
-
 // Get all users route (only admin)
 router.get('/', async (request, response) => {
   try {

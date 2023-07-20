@@ -6,12 +6,12 @@ import {
   updatePost,
   deletePostById,
   togglePostFavByUser,
+  addCommentToPostByUser,
   deleteCommentByUser,
   addRatingToPostByUser,
   addPostRequestByUser,
   updateRequestStatusBySeller,
 } from '../controllers/post.js'
-import { togglePostFavByUser } from '../controllers/post.js'
 
 const router = express.Router()
 
