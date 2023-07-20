@@ -5,7 +5,11 @@ import {
   createPost,
   updatePost,
   deletePostById,
+  togglePostFavByUser,
   deleteCommentByUser,
+  addRatingToPostByUser,
+  addPostRequestByUser,
+  updateRequestStatusBySeller,
 } from '../controllers/post.js'
 import { togglePostFavByUser } from '../controllers/post.js'
 
@@ -120,4 +124,30 @@ router.post('/valorations/:postId', async (request, response) => {
   }
 })
 
+// Request route
+router.post('/request/:postId', async (request, response) => {
+  try {
+    await addPostRequestByUser({
+      postId: request.params.postId,
+      data: request.body,
+      user: request.user,
+    })
+    response.json(true)
+  } catch (error) {
+    response.status(500).json(error.message)
+  }
+})
+
+// Update request route
+router.put('/request/:postId/:requestId', async (request, response) => {
+  try {
+    await updateRequestStatusBySeller(
+      request.params.postId,
+      request.body,
+      request.user
+    )
+  } catch (error) {
+    response.status(500).json(error.message)
+  }
+})
 export default router

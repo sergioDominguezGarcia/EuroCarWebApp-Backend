@@ -1,4 +1,6 @@
 import mongoose from 'mongoose'
+import { PostAvailableTimeSchema } from './posts.js'
+
 
 const userPostRequestSchema = new mongoose.Schema(
   {
@@ -20,6 +22,9 @@ const userPostRequestSchema = new mongoose.Schema(
     status: {
       type: String,
     },
+    time: {
+      type: [PostAvailableTimeSchema],
+    }
   },
   { collection: 'userPostRequests' }
 )
