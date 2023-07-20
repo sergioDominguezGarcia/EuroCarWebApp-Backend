@@ -5,22 +5,22 @@ const userPostValorationSchema = new mongoose.Schema(
     customerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      require: true,
+      required: true,
     },
     postId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Post',
-      require: true,
+      required: true,
     },
     rate: {
       type: Number,
-      require: true,
+      required: true,
       min: 0,
       max: 5
     },
     createdAt: {
       type: Date,
-      require: true,
+      required: true,
       default: Date.now,
     },
   },

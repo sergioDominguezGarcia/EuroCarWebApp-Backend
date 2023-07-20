@@ -5,7 +5,7 @@ const router = express.Router()
 
 
 
-// Get all users route
+// Get all users route (only admin)
 router.get('/', async (request, response) => {
   try {
     const users = await getUsers(request.user)
@@ -28,8 +28,8 @@ router.get('/:id', async (request, response) => {
   }
 })
 
-// Delete user by id route
-router.delete('/users/:id', async (request, response) => {
+// Delete user by id route (only admin)
+router.delete('/:id', async (request, response) => {
   try {
     await deleteUserById(request.params.id)
     response.json({ removed: true })

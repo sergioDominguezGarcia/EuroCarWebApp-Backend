@@ -1,6 +1,31 @@
 import mongoose from 'mongoose'
 
 
+// Schema available time
+const PostAvailableTimeSchema = new mongoose.Schema({
+  weekDay: {
+    type: String,
+    enum: [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ],
+  },
+
+  timing: [
+    {
+      start: Date,
+      end: Date,
+    },
+  ],
+})
+
+
+// Post model
 const postSchema = new mongoose.Schema(
   {
     name: {
@@ -10,14 +35,14 @@ const postSchema = new mongoose.Schema(
     type: {
       type: String,
       enum: ['car', 'motorcycle', 'van'],
-      require: true,
+      required: true,
     },
     model: {
       type: String,
     },
     plateNumber: {
       type: String,
-      require: true,
+      required: true,
     },
     km: {
       type: Number,
@@ -41,20 +66,23 @@ const postSchema = new mongoose.Schema(
       enum: ['4x4', 'coupé', 'sedan', 'compact'],
     },
     sellerId: {
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: "User",
-      require: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
     },
     status: {
       type: String,
       enum: ['oculto', 'activo'],
     },
-    //created at
+    createdAt: {
+      type: Date,
+      required: true,
+      default: Date.now,
+    },
   },
 
   { collection: 'posts' }
 )
-
 
 const Post = mongoose.model('Post', postSchema)
 export default Post

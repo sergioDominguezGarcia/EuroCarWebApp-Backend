@@ -2,6 +2,8 @@ import Post from '../models/post.js'
 import User from '../models/user.js'
 import UserPostComment from '../models/userPostComment.js'
 import UserPostValorations from '../models/userPostValoration.js'
+
+
 //Get all posts controller
 /**
  * @return {Promise<object[]>}
@@ -260,8 +262,12 @@ export const togglePostFavByUser = async (id, user) => {
   await User.updateOne({ _id: user._id }, { favPosts: newFavList })
 }
 
-// Create comment controller
-
+// Create comment by user controller
+/**
+ * @param {string} postId
+ * @param {object} user
+ * @param {object} data
+ */
 export const addCommentToPostByUser = async ({ postId, data, user }) => {
   if (!data.comment) {
     throw new Error('missing require field')
@@ -276,6 +282,11 @@ export const addCommentToPostByUser = async ({ postId, data, user }) => {
   await postComment.save()
 }
 
+// Delete comment by user controller
+/**
+ * @param {string} commentId
+ * @param {object} user
+ */
 export const deleteCommentByUser = async ({ commentId, user }) => {
   const postComment = await UserPostComment.findOne({ _id: commentId })
   if (!postComment) {
@@ -289,6 +300,12 @@ export const deleteCommentByUser = async ({ commentId, user }) => {
   await UserPostComment.deleteOne({ _id: commentId })
 }
 
+//Rating by user controller
+/**
+ * @param {string} postId
+ * @param {object} user
+ * @param {object} data
+ */
 export const addRatingToPostByUser = async ({ postId, data, user }) => {
   if (!data.rate) {
     throw new Error('missing require field')

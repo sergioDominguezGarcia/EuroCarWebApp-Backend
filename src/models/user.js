@@ -15,11 +15,11 @@ const userSchema = new mongoose.Schema(
     rol: {
       type: String,
       enum: ['admin', 'seller', 'customer'],
-      require: true,
+      required: true,
     },
     email: {
       type: String,
-      require: true,
+      required: true,
       lowercase: true,
       trim: true,
       unique: true,
@@ -33,19 +33,22 @@ const userSchema = new mongoose.Schema(
     },
     salt: {
       type: Number,
-      require: true,
+      required: true,
     },
     document: {
       type: String,
     },
-    //created at
-
-    favPosts:[
-      {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Post"
+    createdAt: {
+      type: Date,
+      required: true,
+      default: Date.now,
     },
-  ],
+    favPosts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Post',
+      },
+    ],
   },
   { collection: 'users' }
 )  

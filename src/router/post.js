@@ -11,6 +11,7 @@ import { togglePostFavByUser } from '../controllers/post.js'
 
 const router = express.Router()
 
+
 // Get all posts route
 router.get('/', async (request, response) => {
   try {
@@ -78,6 +79,7 @@ router.post('/favs/:id', async (request, response) => {
   }
 })
 
+// Comment post route
 router.post('/comments/:postId', async (request, response) => {
   try {
     await addCommentToPostByUser({
@@ -91,6 +93,7 @@ router.post('/comments/:postId', async (request, response) => {
   }
 })
 
+// Delete comments route
 router.delete('/comments/:commentId', async (request, response) => {
   try {
     await deleteCommentByUser({
@@ -103,7 +106,7 @@ router.delete('/comments/:commentId', async (request, response) => {
   }
 })
 
-
+// Valoration post route
 router.post('/valorations/:postId', async (request, response) => {
   try {
     await addRatingToPostByUser({
@@ -116,6 +119,5 @@ router.post('/valorations/:postId', async (request, response) => {
     response.status(500).json(error.message)
   }
 })
-
 
 export default router
