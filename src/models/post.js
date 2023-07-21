@@ -1,9 +1,8 @@
 import mongoose from 'mongoose'
 
-
 // Schema available time
 export const PostAvailableTimeSchema = new mongoose.Schema({
-  weekDays: {
+  weekDays: [{
     type: String,
     enum: [
       'Monday',
@@ -13,17 +12,15 @@ export const PostAvailableTimeSchema = new mongoose.Schema({
       'Friday',
       'Saturday',
       'Sunday',
-    ],
-  },
-
-  timing: [
+    ]
+  }],
+  times: [
     {
       start: Date,
       end: Date,
     },
   ],
 })
-
 
 // Post model
 const postSchema = new mongoose.Schema(

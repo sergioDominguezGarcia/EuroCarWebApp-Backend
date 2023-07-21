@@ -1,7 +1,6 @@
 import mongoose from 'mongoose'
 import { PostAvailableTimeSchema } from './post.js'
 
-
 const userPostRequestSchema = new mongoose.Schema(
   {
     customerId: {
@@ -19,12 +18,15 @@ const userPostRequestSchema = new mongoose.Schema(
       required: true,
       default: Date.now,
     },
+    //TO DO cambiar a enum
     status: {
       type: String,
+      default: 'pending',
+      required: true,
     },
     time: {
-      type: [PostAvailableTimeSchema],
-    }
+      type: PostAvailableTimeSchema,
+    },
   },
   { collection: 'userPostRequests' }
 )

@@ -3,7 +3,7 @@ import User from '../models/user.js'
 import UserPostComment from '../models/userPostComment.js'
 import UserPostValorations from '../models/userPostValoration.js'
 import UserPostRequest from '../models/userPostRequest.js'
-import { isValid } from 'date-fns'
+import { validatePostAvailableTimeData } from '../utils/post.js'
 
 //Get all posts controller
 /**
@@ -89,7 +89,7 @@ export const createPost = async ({ data, user }) => {
     style,
     sellerId,
     status,
-    availableTime,
+    availableTimes,
   } = data
   if (!name || !type || !plateNumber || !sellerId) {
     throw new Error('Missing required fields')
@@ -125,26 +125,11 @@ export const createPost = async ({ data, user }) => {
     throw new Error('invalid status')
   }
 
-  // const validWeekDay = [
-  //   'Monday',
-  //   'Tuesday',
-  //   'Wednesday',
-  //   'Thursday',
-  //   'Friday',
-  //   'Saturday',
-  //   'Sunday',
-  // ]
-
-  // if (!validWeekDay.includes(availableTime.weekDay)) {
-  //   throw new Error('The day of week is invalid')
-  // }
-
-  // if (
-  //   !isValid(availableTime.timing.start) ||
-  //   !isValid(availableTime.timing.end)
-  // ) {
-  //   throw new Error('Your start time or end time is invalid')
-  // }
+  if(availableTimes){
+    for (const availableTime of availableTimes) {
+      validatePostAvailableTimeData(availableTime)
+    }
+  }
 
   const post = new Post({
     name,
@@ -159,7 +144,7 @@ export const createPost = async ({ data, user }) => {
     style,
     sellerId,
     status,
-    availableTime,
+    availableTimes,
   })
 
   return post.save()
@@ -343,7 +328,7 @@ export const togglePostFavByUser = async (postId, user) => {
  */
 export const addCommentToPostByUser = async ({ postId, data, user }) => {
   if (user.rol === 'seller') {
-    throw new Error("you don't have permission")
+    throw new Error("you can't post being a seller")
   }
   if (!data.comment) {
     throw new Error('missing require field')
@@ -424,44 +409,19 @@ export const addRatingToPostByUser = async ({ postId, data, user }) => {
  * @param {Date} data.time.timing.end
  */
 export const addPostRequestByUser = async ({ postId, data, user }) => {
-  if (
-    !data.status ||
-    !data.time.weekDay ||
-    !data.time.timing.start ||
-    !data.time.timing.end
-  ) {
+  if (!postId || !data.availableTime) {
     throw new Error('Missing some fields')
   }
 
-  const validWeekDay = [
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-    'Sunday',
-  ]
-  if (!validWeekDay.includes(data.time.weekDay)) {
-    throw new Error('The day of the week is invalid')
-  }
-
-  if (!isValid(data.time.timing.start) || !isValid(data.time.timing.end)) {
-    throw new Error('Your start time or end time for this request is invalid')
-  }
+  validatePostAvailableTimeData(data.availableTime)
 
   const post = await getPostById(postId)
+  //TO DO validar que el post esta disponible para el tiempo requerido
   const postRequest = new UserPostRequest({
     postId: post._id,
     customerId: user._id,
     status: data.status,
-    time: {
-      weekDay: data.time.weekDay,
-      timing: {
-        start: data.time.timing.start,
-        end: data.time.timing.end,
-      },
-    },
+    time: data.availableTime,
   })
 
   await postRequest.save()
