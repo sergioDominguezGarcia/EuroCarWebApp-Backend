@@ -81,7 +81,7 @@ const postSchema = new mongoose.Schema(
     },
     availableTime: {
       type: [PostAvailableTimeSchema],
-      require: true,
+      required: true,
     },
   },
 

@@ -65,6 +65,11 @@ export const getPostById = async (id) => {
  * @param {string} data.sellerId
  * @param {"oculto" | "activo"} data.status
  * @param {string} data.name
+ * @param {object[]} data.availableTime
+ * @param {'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday'} data.availableTime.weekDay
+ * @param {object[]} data.availableTime.timing
+ * @param {Date} data.availableTime.timing.start
+ * @param {Date} data.availableTime.timing.end
  * @return {Promise<object>}
  */
 export const createPost = async ({
@@ -80,8 +85,16 @@ export const createPost = async ({
   style,
   sellerId,
   status,
+  availableTime,
 }) => {
-  if (!name || !type || !plateNumber || !sellerId) {
+  if (
+    !name ||
+    !type ||
+    !plateNumber ||
+    !sellerId ||
+    !availableTime.weekDay ||
+    !availableTime.timing
+  ) {
     throw new Error('Missing required fields')
   }
 
@@ -115,6 +128,27 @@ export const createPost = async ({
     throw new Error('invalid status')
   }
 
+  const validWeekDay = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ]
+
+  if (!validWeekDay.includes(availableTime.weekDay)) {
+    throw new Error('The day of week is invalid')
+  }
+
+  if (
+    !isValid(availableTime.timing.start) ||
+    !isValid(availableTime.timing.end)
+  ) {
+    throw new Error('Your start time or end time is invalid')
+  }
+
   const post = new Post({
     name,
     type,
@@ -128,6 +162,7 @@ export const createPost = async ({
     style,
     sellerId,
     status,
+    availableTime,
   })
 
   return post.save()
@@ -149,6 +184,11 @@ export const createPost = async ({
  * @param {string} data.sellerId
  * @param {"oculto" | "activo"} data.status
  * @param {string} data.name
+ * @param {object[]} data.availableTime
+ * @param {'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday'} data.availableTime.weekDay
+ * @param {object[]} data.availableTime.timing
+ * @param {Date} data.availableTime.timing.start
+ * @param {Date} data.availableTime.timing.end
  * @return {Promise<object>}
  */
 export const updatePost = async ({ id, data, user }) => {
@@ -164,9 +204,14 @@ export const updatePost = async ({ id, data, user }) => {
     description,
     style,
     status,
+    availableTime,
   } = data
 
   const post = await getPostById(id)
+
+  if (availableTime) {
+    post.availableTime = availableTime
+  }
 
   if (model) {
     post.model = model
@@ -242,6 +287,7 @@ export const updatePost = async ({ id, data, user }) => {
   }
 
   await post.save()
+
   return post
 }
 
@@ -363,7 +409,7 @@ export const addRatingToPostByUser = async ({ postId, data, user }) => {
   await postRating.save()
 }
 
-// Add request & update request
+// Add request 
 /**
  * @param {string} postId
  * @param {object} data
@@ -418,6 +464,17 @@ export const addPostRequestByUser = async ({ postId, data, user }) => {
   await postRequest.save()
 }
 
+// Update request
+/**
+ * @param {string} postId
+ * @param {object} data
+ * @param {string} data.status
+ * @param {object[]} data.time
+ * @param {'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday'} data.time.weekDay
+ * @param {object[]} data.time.timing
+ * @param {Date} data.time.timing.start
+ * @param {Date} data.time.timing.end
+ */
 export const updateRequestStatusBySeller = async ({
   postId,
   data,
