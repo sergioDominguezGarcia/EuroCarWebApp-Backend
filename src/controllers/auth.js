@@ -50,6 +50,7 @@ export const signup = async ({
   age,
   phone,
   document,
+  dni
 }) => {
   if (!email || !password || !rol) {
     throw new Error('Miss some fields')

@@ -4,7 +4,7 @@ import User from '../models/user.js'
 const publicUrls = ['auth/login', 'auth/signup']
 
 export const ensureAuthenticated = async (request, response, next) => {
-  if (publicUrls.includes(request.path)) {
+  if (!publicUrls.includes(request.path)) {
     return next()
   }
 
@@ -18,7 +18,7 @@ export const ensureAuthenticated = async (request, response, next) => {
 
   if (!token) {
     return response.status(403).send({
-      message: 'You are not authenticated',
+      message: 'You are not authenticated (token)',
     })
   }
 

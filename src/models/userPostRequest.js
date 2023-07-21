@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { PostAvailableTimeSchema } from './posts.js'
+import { PostAvailableTimeSchema } from './post.js'
 
 
 const userPostRequestSchema = new mongoose.Schema(

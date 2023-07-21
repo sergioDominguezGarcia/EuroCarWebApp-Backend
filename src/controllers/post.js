@@ -2,7 +2,7 @@ import Post from '../models/post.js'
 import User from '../models/user.js'
 import UserPostComment from '../models/userPostComment.js'
 import UserPostValorations from '../models/userPostValoration.js'
-import UserPostRequest from '../models/user_post_request.js'
+import UserPostRequest from '../models/userPostRequest.js'
 import { isValid } from 'date-fns'
 
 //Get all posts controller

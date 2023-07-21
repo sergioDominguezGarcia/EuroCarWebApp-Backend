@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
     },
     salt: {
-      type: Number,
+      type: String,
       required: true,
     },
     document: {

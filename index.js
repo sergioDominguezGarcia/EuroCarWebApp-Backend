@@ -4,6 +4,7 @@ import cors from 'cors'
 import postsRouter from './src/router/post.js'
 import usersRouter from './src/router/user.js'
 import authRouter from"./src/router/auth.js"
+import {ensureAuthenticated} from "./src/middleware/auth.js"
 import dotenv from 'dotenv'
 import connectToDb from './src/services/db.js'
 dotenv.config()
