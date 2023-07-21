@@ -1,25 +1,30 @@
 import mongoose from 'mongoose'
+import { PostAvailableTimeSchema } from './posts.js'
+
 
 const userPostRequestSchema = new mongoose.Schema(
   {
     customerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      require: true,
+      required: true,
     },
     postId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Post',
-      require: true,
+      required: true,
     },
     createdAt: {
       type: Date,
-      require: true,
+      required: true,
       default: Date.now,
     },
     status: {
       type: String,
     },
+    time: {
+      type: [PostAvailableTimeSchema],
+    }
   },
   { collection: 'userPostRequests' }
 )

@@ -1,7 +1,7 @@
 import User from '../models/user.js'
 
 
-// Get all users controller
+// Get all users controller (only admin)
 /**
  * @returns {Promise<object>}
  */
@@ -28,15 +28,18 @@ export const getUserById = async (id) => {
   return user
 }
 
-// Delete user by id controller
+// Delete user by id controller (only admin)
 /**
  * @param {string} id
+ * @param {object} user
+ * @param {'admin' | 'seller' | 'customer'} user.rol
  * @returns {Promise<boolean>}
  */
-export const deleteUserById = async (id) => {
+export const deleteUserById = async (id, user) => {
+  if (!user || user.rol !== 'admin') {
+    throw new Error('You dont have permission')
+  }
   await User.deleteOne({ _id: id })
 
   return true
 }
-
-

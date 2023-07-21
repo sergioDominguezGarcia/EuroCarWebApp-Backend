@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken'
 import User from '../models/user.js'
-import { request, response } from 'express'
 
 const publicUrls = ['auth/login', 'auth/signup']
 
@@ -38,6 +37,7 @@ export const ensureAuthenticated = async (request, response, next) => {
   if (!user) {
     return response.status(403).send({ message: 'Wrong token' })
   }
+
 
   request.user = user
 

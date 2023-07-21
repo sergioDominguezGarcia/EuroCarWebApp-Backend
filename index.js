@@ -13,18 +13,14 @@ const startApp = async () => {
   const app = express()
   const port = process.env.PORT
 
-  
+  app.use(ensureAuthenticated)
   app.use(cors())
   app.use(bodyParser.json())
   app.use(
     bodyParser.urlencoded({
       extended: true,
-    })
-  )
+    }))
 
-  app.get('/', (request, response) => {
-    response.json({ info: 'hola mundo' })
-  })
 
   app.use("/auth", authRouter)
   app.use('/posts', postsRouter)

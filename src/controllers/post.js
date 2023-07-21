@@ -2,6 +2,9 @@ import Post from '../models/post.js'
 import User from '../models/user.js'
 import UserPostComment from '../models/userPostComment.js'
 import UserPostValorations from '../models/userPostValoration.js'
+import UserPostRequest from '../models/user_post_request.js'
+import { isValid } from 'date-fns'
+
 //Get all posts controller
 /**
  * @return {Promise<object[]>}
@@ -34,7 +37,16 @@ export const getPostById = async (id) => {
     postId: post._id,
   })
 
-  return { ...post.toObject(), comments: postComments, rating: rating / 5 }
+  const postRequests = await UserPostRequest.find({
+    postId: post._id,
+  })
+
+  return {
+    ...post.toObject(),
+    comments: postComments,
+    rating: rating / 5,
+    requests: postRequests,
+  }
 }
 
 //Create post controller
@@ -53,6 +65,11 @@ export const getPostById = async (id) => {
  * @param {string} data.sellerId
  * @param {"oculto" | "activo"} data.status
  * @param {string} data.name
+ * @param {object[]} data.availableTime
+ * @param {'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday'} data.availableTime.weekDay
+ * @param {object[]} data.availableTime.timing
+ * @param {Date} data.availableTime.timing.start
+ * @param {Date} data.availableTime.timing.end
  * @return {Promise<object>}
  */
 export const createPost = async ({
@@ -68,8 +85,16 @@ export const createPost = async ({
   style,
   sellerId,
   status,
+  availableTime,
 }) => {
-  if (!name || !type || !plateNumber || !sellerId) {
+  if (
+    !name ||
+    !type ||
+    !plateNumber ||
+    !sellerId ||
+    !availableTime.weekDay ||
+    !availableTime.timing
+  ) {
     throw new Error('Missing required fields')
   }
 
@@ -103,6 +128,27 @@ export const createPost = async ({
     throw new Error('invalid status')
   }
 
+  const validWeekDay = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ]
+
+  if (!validWeekDay.includes(availableTime.weekDay)) {
+    throw new Error('The day of week is invalid')
+  }
+
+  if (
+    !isValid(availableTime.timing.start) ||
+    !isValid(availableTime.timing.end)
+  ) {
+    throw new Error('Your start time or end time is invalid')
+  }
+
   const post = new Post({
     name,
     type,
@@ -116,6 +162,7 @@ export const createPost = async ({
     style,
     sellerId,
     status,
+    availableTime,
   })
 
   return post.save()
@@ -137,6 +184,11 @@ export const createPost = async ({
  * @param {string} data.sellerId
  * @param {"oculto" | "activo"} data.status
  * @param {string} data.name
+ * @param {object[]} data.availableTime
+ * @param {'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday'} data.availableTime.weekDay
+ * @param {object[]} data.availableTime.timing
+ * @param {Date} data.availableTime.timing.start
+ * @param {Date} data.availableTime.timing.end
  * @return {Promise<object>}
  */
 export const updatePost = async ({ id, data, user }) => {
@@ -152,9 +204,30 @@ export const updatePost = async ({ id, data, user }) => {
     description,
     style,
     status,
+    availableTime,
   } = data
 
   const post = await getPostById(id)
+
+  if (availableTime) {
+    post.availableTime = availableTime
+  }
+
+  if (model) {
+    post.model = model
+  }
+
+  if (km) {
+    post.km = km
+  }
+
+  if (carSeats) {
+    post.carSeats = carSeats
+  }
+
+  if (description) {
+    post.description = description
+  }
 
   if (post.sellerId !== user._id && rol !== 'admin') {
     throw new Error('no tienes permiso')
@@ -214,17 +287,22 @@ export const updatePost = async ({ id, data, user }) => {
   }
 
   await post.save()
+
   return post
 }
 
 //Delete post controller
 /**
- * @param {string} id
- * @return {Promise<boolean>}
+ * @param {string} postId
+ * @param {string} sellerId
+ * @param {object} user
+ * @param {string} user._id
+ * @param {'admin' | 'seller' | 'customer'} user.rol
+ * @returns {Promise<boolean>}
  */
 export const deletePostById = async ({ postId, user }) => {
   const post = await getPostById(postId)
-  if (post.sellerId !== user._id && user.rol !== 'admin') {
+  if (post.sellerId.toString() !== user._id && user.rol !== 'admin') {
     throw new Error('No tienes permiso')
   }
 
@@ -235,33 +313,37 @@ export const deletePostById = async ({ postId, user }) => {
 
 //Favorite post controller
 /**
- * @param {string} id
+ * @param {string} postId
  * @param {object} user
  * @param {object[]} user.favPosts
  */
-export const togglePostFavByUser = async (id, user) => {
-  if (!id) {
+export const togglePostFavByUser = async (postId, user) => {
+  if (!postId) {
     throw new Error('id is required')
   }
-  const post = await getPostById(id)
+  const post = await getPostById(postId)
   const currentFavs = user.favPosts || []
   const existedFav = currentFavs.find(
-    (currentId) => currentId.toString() === id.toString()
+    (currentId) => currentId.toString() === postId.toString()
   )
 
   let newFavList = []
   if (!existedFav) {
-    newFavList = [...currentFavs, id]
+    newFavList = [...currentFavs, postId]
   } else {
     newFavList = currentFavs.filter(
-      (currentId) => currentId.toString() !== id.toString()
+      (currentId) => currentId.toString() !== postId.toString()
     )
   }
   await User.updateOne({ _id: user._id }, { favPosts: newFavList })
 }
 
-// Create comment controller
-
+// Create comment by user controller
+/**
+ * @param {string} postId
+ * @param {object} user
+ * @param {object} data
+ */
 export const addCommentToPostByUser = async ({ postId, data, user }) => {
   if (!data.comment) {
     throw new Error('missing require field')
@@ -276,6 +358,14 @@ export const addCommentToPostByUser = async ({ postId, data, user }) => {
   await postComment.save()
 }
 
+// Delete comment by user controller
+/**
+ * @param {string} commentId
+ * @param {object} user
+ * @param {'admin' | 'seller' | 'customer'} user.rol
+ * @param {string} user._id
+ * @returns {Promise<boolean>}
+ */
 export const deleteCommentByUser = async ({ commentId, user }) => {
   const postComment = await UserPostComment.findOne({ _id: commentId })
   if (!postComment) {
@@ -289,6 +379,12 @@ export const deleteCommentByUser = async ({ commentId, user }) => {
   await UserPostComment.deleteOne({ _id: commentId })
 }
 
+//Rating by user controller
+/**
+ * @param {string} postId
+ * @param {object} user
+ * @param {object} data
+ */
 export const addRatingToPostByUser = async ({ postId, data, user }) => {
   if (!data.rate) {
     throw new Error('missing require field')
@@ -308,7 +404,97 @@ export const addRatingToPostByUser = async ({ postId, data, user }) => {
   const postRating = new UserPostValorations({
     customerId: user._id,
     postId: post._id,
-    rate: formattedRate
+    rate: formattedRate,
   })
   await postRating.save()
+}
+
+// Add request 
+/**
+ * @param {string} postId
+ * @param {object} data
+ * @param {string} data.status
+ * @param {object[]} data.time
+ * @param {'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday'} data.time.weekDay
+ * @param {object[]} data.time.timing
+ * @param {Date} data.time.timing.start
+ * @param {Date} data.time.timing.end
+ */
+export const addPostRequestByUser = async ({ postId, data, user }) => {
+  if (
+    !data.status ||
+    !data.time.weekDay ||
+    !data.time.timing.start ||
+    !data.time.timing.end
+  ) {
+    throw new Error('Missing some fields')
+  }
+
+  const validWeekDay = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ]
+  if (!validWeekDay.includes(data.time.weekDay)) {
+    throw new Error('The day of the week is invalid')
+  }
+
+  if (!isValid(data.time.timing.start) || !isValid(data.time.timing.end)) {
+    throw new Error('Your start time or end time for this request is invalid')
+  }
+
+  const post = await getPostById(postId)
+  const postRequest = new UserPostRequest({
+    postId: post._id,
+    customerId: user._id,
+    status: data.status,
+    time: {
+      weekDay: data.time.weekDay,
+      timing: {
+        start: data.time.timing.start,
+        end: data.time.timing.end,
+      },
+    },
+  })
+
+  await postRequest.save()
+}
+
+// Update request
+/**
+ * @param {string} postId
+ * @param {object} data
+ * @param {string} data.status
+ * @param {object[]} data.time
+ * @param {'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday'} data.time.weekDay
+ * @param {object[]} data.time.timing
+ * @param {Date} data.time.timing.start
+ * @param {Date} data.time.timing.end
+ */
+export const updateRequestStatusBySeller = async ({
+  postId,
+  data,
+  user,
+  requestId,
+}) => {
+  const post = await getPostById(postId)
+  const postRequest = await UserPostRequest.findOne({ _id: requestId })
+  if (
+    post.sellerId.toString() !== user._id.toString() &&
+    user.rol !== 'admin'
+  ) {
+    throw new Error('You dont have permission to edit this request')
+  }
+
+  if (data.status) {
+    postRequest.status = data.status
+  }
+
+  await post.save()
+
+  return post
 }
