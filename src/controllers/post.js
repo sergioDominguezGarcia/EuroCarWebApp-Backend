@@ -72,29 +72,26 @@ export const getPostById = async (id) => {
  * @param {Date} data.availableTime.timing.end
  * @return {Promise<object>}
  */
-export const createPost = async ({
-  name,
-  type,
-  model,
-  plateNumber,
-  km,
-  carSeats,
-  fuelType,
-  gearBoxType,
-  description,
-  style,
-  sellerId,
-  status,
-  availableTime,
-}) => {
-  if (
-    !name ||
-    !type ||
-    !plateNumber ||
-    !sellerId ||
-    !availableTime.weekDay ||
-    !availableTime.timing
-  ) {
+export const createPost = async ({ data, user }) => {
+  if (user.rol === 'customer') {
+    throw new Error("You don't have permission")
+  }
+  const {
+    name,
+    type,
+    model,
+    plateNumber,
+    km,
+    carSeats,
+    fuelType,
+    gearBoxType,
+    description,
+    style,
+    sellerId,
+    status,
+    availableTime,
+  } = data
+  if (!name || !type || !plateNumber || !sellerId) {
     throw new Error('Missing required fields')
   }
 
@@ -128,26 +125,26 @@ export const createPost = async ({
     throw new Error('invalid status')
   }
 
-  const validWeekDay = [
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-    'Sunday',
-  ]
+  // const validWeekDay = [
+  //   'Monday',
+  //   'Tuesday',
+  //   'Wednesday',
+  //   'Thursday',
+  //   'Friday',
+  //   'Saturday',
+  //   'Sunday',
+  // ]
 
-  if (!validWeekDay.includes(availableTime.weekDay)) {
-    throw new Error('The day of week is invalid')
-  }
+  // if (!validWeekDay.includes(availableTime.weekDay)) {
+  //   throw new Error('The day of week is invalid')
+  // }
 
-  if (
-    !isValid(availableTime.timing.start) ||
-    !isValid(availableTime.timing.end)
-  ) {
-    throw new Error('Your start time or end time is invalid')
-  }
+  // if (
+  //   !isValid(availableTime.timing.start) ||
+  //   !isValid(availableTime.timing.end)
+  // ) {
+  //   throw new Error('Your start time or end time is invalid')
+  // }
 
   const post = new Post({
     name,
@@ -345,6 +342,9 @@ export const togglePostFavByUser = async (postId, user) => {
  * @param {object} data
  */
 export const addCommentToPostByUser = async ({ postId, data, user }) => {
+  if (user.rol === 'seller') {
+    throw new Error("you don't have permission")
+  }
   if (!data.comment) {
     throw new Error('missing require field')
   }
@@ -372,7 +372,10 @@ export const deleteCommentByUser = async ({ commentId, user }) => {
     throw new Error('comment not found')
   }
 
-  if (postComment.customerId !== user._id && user.rol !== 'admin') {
+  if (
+    postComment.customerId.toString() !== user._id.toString() &&
+    user.rol !== 'admin'
+  ) {
     throw new Error("you don't have permission")
   }
 
@@ -409,7 +412,7 @@ export const addRatingToPostByUser = async ({ postId, data, user }) => {
   await postRating.save()
 }
 
-// Add request 
+// Add request
 /**
  * @param {string} postId
  * @param {object} data

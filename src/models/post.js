@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 
 // Schema available time
 export const PostAvailableTimeSchema = new mongoose.Schema({
-  weekDay: {
+  weekDays: {
     type: String,
     enum: [
       'Monday',

@@ -15,7 +15,6 @@ import {
 
 const router = express.Router()
 
-
 // Get all posts route
 router.get('/', async (request, response) => {
   try {
@@ -39,9 +38,13 @@ router.get('/:id', async (request, response) => {
 // Create post route
 router.post('/', async (request, response) => {
   try {
+    console.log(request.user)
     const createdPost = await createPost({
-      ...request.body,
-      sellerId: request.user._id,
+      data: {
+        ...request.body,
+        sellerId: request.user._id,
+      },
+      user: request.user,
     })
     response.json({ post: createdPost })
   } catch (e) {
@@ -74,7 +77,7 @@ router.delete('/:id', async (request, response) => {
 })
 
 // Favorite post route
-router.post('/favs/:id', async (request, response) => {
+router.post('/:id/favs', async (request, response) => {
   try {
     await togglePostFavByUser(request.params.id, request.user)
     response.json(true)
@@ -84,7 +87,7 @@ router.post('/favs/:id', async (request, response) => {
 })
 
 // Comment post route
-router.post('/comments/:postId', async (request, response) => {
+router.post('/:postId/comments', async (request, response) => {
   try {
     await addCommentToPostByUser({
       postId: request.params.postId,
