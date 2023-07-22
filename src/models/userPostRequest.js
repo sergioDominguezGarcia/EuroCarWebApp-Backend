@@ -1,5 +1,4 @@
 import mongoose from 'mongoose'
-import { PostAvailableTimeSchema } from './post.js'
 
 const userPostRequestSchema = new mongoose.Schema(
   {
@@ -23,8 +22,17 @@ const userPostRequestSchema = new mongoose.Schema(
       enum: ['pending', 'rejected', 'approve', 'canceled'],
       default: 'pending',
     },
-    time: {
-      type: PostAvailableTimeSchema,
+    weekDay: {
+      type: String,
+      enum: [
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+        'Sunday',
+      ],
     },
   },
   { collection: 'userPostRequests' }

@@ -114,7 +114,7 @@ router.delete('/comments/:commentId', async (request, response) => {
 })
 
 // Valoration post route
-router.post('/valorations/:postId', async (request, response) => {
+router.post('/rate/:postId', async (request, response) => {
   try {
     await addRatingToPostByUser({
       postId: request.params.postId,
@@ -128,7 +128,7 @@ router.post('/valorations/:postId', async (request, response) => {
 })
 
 // Request route
-router.post('/request/:postId', async (request, response) => {
+router.post('/:postId/request', async (request, response) => {
   try {
     await addPostRequestByUser({
       postId: request.params.postId,

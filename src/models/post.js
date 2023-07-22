@@ -66,13 +66,12 @@ const postSchema = new mongoose.Schema(
           'Saturday',
           'Sunday',
         ],
-      },    
+      },
     ],
-  
-
   },
   { collection: 'posts' }
 )
 
 const Post = mongoose.model('Post', postSchema)
+
 export default Post
