@@ -41,10 +41,12 @@ export const getPostById = async (id) => {
     postId: post._id,
   })
 
+  const valorations = UserPostValorations.length
+
   return {
     ...post.toObject(),
     comments: postComments,
-    rating: rating / 5,
+    rating: rating / valorations,
     requests: postRequests,
   }
 }
@@ -125,10 +127,8 @@ export const createPost = async ({ data, user }) => {
     throw new Error('invalid status')
   }
 
-  if(availableTimes){
-    for (const availableTime of availableTimes) {
-      validatePostAvailableTimeData(availableTime)
-    }
+  if (availableTimes) {
+    validatePostAvailableTimeData(availableTimes)
   }
 
   const post = new Post({
@@ -166,11 +166,6 @@ export const createPost = async ({ data, user }) => {
  * @param {string} data.sellerId
  * @param {"oculto" | "activo"} data.status
  * @param {string} data.name
- * @param {object[]} data.availableTime
- * @param {'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday'} data.availableTime.weekDay
- * @param {object[]} data.availableTime.timing
- * @param {Date} data.availableTime.timing.start
- * @param {Date} data.availableTime.timing.end
  * @return {Promise<object>}
  */
 export const updatePost = async ({ id, data, user }) => {
@@ -186,13 +181,17 @@ export const updatePost = async ({ id, data, user }) => {
     description,
     style,
     status,
-    availableTime,
+    availableTimes,
   } = data
 
-  const post = await getPostById(id)
+  const post = await Post.findOne({ _id: id })
+  if (!post) {
+    throw new Error('Post not found')
+  }
 
-  if (availableTime) {
-    post.availableTime = availableTime
+  if (availableTimes) {
+    validatePostAvailableTimeData(availableTimes)
+    post.availableTimes = availableTimes
   }
 
   if (model) {
@@ -211,7 +210,10 @@ export const updatePost = async ({ id, data, user }) => {
     post.description = description
   }
 
-  if (post.sellerId !== user._id && rol !== 'admin') {
+  if (
+    post.sellerId.toString() !== user._id.toString() &&
+    user.rol !== 'admin'
+  ) {
     throw new Error('no tienes permiso')
   }
 
@@ -372,8 +374,14 @@ export const deleteCommentByUser = async ({ commentId, user }) => {
  * @param {string} postId
  * @param {object} user
  * @param {object} data
+ * @param {object} data.rate
+ * @param {string} user._id
  */
 export const addRatingToPostByUser = async ({ postId, data, user }) => {
+  if (user.rol === 'seller') {
+    throw new Error("You can't rate posts being seller")
+  }
+
   if (!data.rate) {
     throw new Error('missing require field')
   }
@@ -385,6 +393,15 @@ export const addRatingToPostByUser = async ({ postId, data, user }) => {
 
   if (formattedRate < 0 || formattedRate > 5) {
     throw new Error('invalid range')
+  }
+
+  const hasRate = await UserPostValorations.findOne({
+    customerId: user._id,
+    postId: post._id,
+  })
+
+  if (hasRate) {
+    throw new Error('You already rate this post!')
   }
 
   const post = await getPostById(postId)
@@ -402,26 +419,38 @@ export const addRatingToPostByUser = async ({ postId, data, user }) => {
  * @param {string} postId
  * @param {object} data
  * @param {string} data.status
- * @param {object[]} data.time
- * @param {'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday'} data.time.weekDay
- * @param {object[]} data.time.timing
- * @param {Date} data.time.timing.start
- * @param {Date} data.time.timing.end
+ * @param {object} data.time
  */
 export const addPostRequestByUser = async ({ postId, data, user }) => {
   if (!postId || !data.availableTime) {
     throw new Error('Missing some fields')
   }
 
-  validatePostAvailableTimeData(data.availableTime)
-
   const post = await getPostById(postId)
-  //TO DO validar que el post esta disponible para el tiempo requerido
+
+  if (!post.availableTimes.includes(data.weekDay)) {
+    throw new Error(`This ${data.weekDay} is not available to this post`)
+  }
+
+  const isRequested = await UserPostRequest.findOne({
+    postId: post._id,
+    weekDay: data.weekDay,
+    createdAt: {
+      $gte: startOfDay(new Date()),
+      $lte: endOfDay(new Date()),
+    },
+    status: 'approved',
+  })
+
+  if (isRequested) {
+    throw new Error('The date is already booked')
+  }
+
   const postRequest = new UserPostRequest({
     postId: post._id,
     customerId: user._id,
     status: data.status,
-    time: data.availableTime,
+    weekDay: data.weekDay,
   })
 
   await postRequest.save()
@@ -432,32 +461,35 @@ export const addPostRequestByUser = async ({ postId, data, user }) => {
  * @param {string} postId
  * @param {object} data
  * @param {string} data.status
- * @param {object[]} data.time
- * @param {'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday'} data.time.weekDay
- * @param {object[]} data.time.timing
- * @param {Date} data.time.timing.start
- * @param {Date} data.time.timing.end
+ * @param {object} data.time
  */
-export const updateRequestStatusBySeller = async ({
-  postId,
-  data,
-  user,
-  requestId,
-}) => {
-  const post = await getPostById(postId)
+export const updateRequestStatusBySeller = async ({ data, requestId }) => {
   const postRequest = await UserPostRequest.findOne({ _id: requestId })
-  if (
-    post.sellerId.toString() !== user._id.toString() &&
-    user.rol !== 'admin'
-  ) {
-    throw new Error('You dont have permission to edit this request')
-  }
 
   if (data.status) {
+    if (data.status === 'approved') {
+      const sameRequestDay = await UserPostRequest.find({
+        _id: { $not: postRequest._id },
+        weekDay: postRequest.weekDay,
+        postId: postRequest.postId,
+        createdAt: {
+          $gte: startOfDay(postRequest.createdAt),
+          $lte: endOfDay(postRequest.createdAt),
+        },
+      })
+
+      const sameRequestIds = sameRequestDay.map((request) => request._id)
+      if (sameRequestIds.length > 0) {
+        await UserPostRequest.updateMany(
+          { _id: { $in: sameRequestIds } },
+          { status: 'rejected' }
+        )
+      }
+    }
     postRequest.status = data.status
   }
 
-  await post.save()
+  await postRequest.save()
 
-  return post
+  return postRequest
 }

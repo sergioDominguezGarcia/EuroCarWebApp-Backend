@@ -18,11 +18,10 @@ const userPostRequestSchema = new mongoose.Schema(
       required: true,
       default: Date.now,
     },
-    //TO DO cambiar a enum
     status: {
       type: String,
+      enum: ['pending', 'rejected', 'approve', 'canceled'],
       default: 'pending',
-      required: true,
     },
     time: {
       type: PostAvailableTimeSchema,
