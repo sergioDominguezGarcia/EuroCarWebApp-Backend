@@ -38,7 +38,6 @@ router.get('/:id', async (request, response) => {
 // Create post route
 router.post('/', async (request, response) => {
   try {
-    console.log(request.user)
     const createdPost = await createPost({
       data: {
         ...request.body,

@@ -42,8 +42,10 @@ export const getPostById = async (id) => {
   })
 
   const totalValorations= postValorations.length
-  
+
   const averageRating = totalValorations > 0 ? rating / totalValorations : 0
+
+
 
   return {
     ...post.toObject(),
