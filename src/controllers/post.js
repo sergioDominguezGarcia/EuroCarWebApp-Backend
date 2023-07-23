@@ -41,12 +41,14 @@ export const getPostById = async (id) => {
     postId: post._id,
   })
 
-  const valorations = UserPostValorations.length
+  const totalValorations= postValorations.length
+  
+  const averageRating = totalValorations > 0 ? rating / totalValorations : 0
 
   return {
     ...post.toObject(),
     comments: postComments,
-    rating: rating / valorations,
+    rating: averageRating,
     requests: postRequests,
   }
 }
@@ -387,6 +389,7 @@ export const addRatingToPostByUser = async ({ postId, data, user }) => {
   }
 
   const formattedRate = Number(data.rate)
+
   if (isNaN(formattedRate)) {
     throw new Error('invalid field')
   }
@@ -395,6 +398,8 @@ export const addRatingToPostByUser = async ({ postId, data, user }) => {
     throw new Error('invalid range')
   }
 
+  const post = await getPostById(postId)
+  
   const hasRate = await UserPostValorations.findOne({
     customerId: user._id,
     postId: post._id,
@@ -404,12 +409,12 @@ export const addRatingToPostByUser = async ({ postId, data, user }) => {
     throw new Error('You already rate this post!')
   }
 
-  const post = await getPostById(postId)
+
 
   const postRating = new UserPostValorations({
     customerId: user._id,
     postId: post._id,
-    rate: formattedRate,
+    rate: data.rate ,
   })
   await postRating.save()
 }
