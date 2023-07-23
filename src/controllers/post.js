@@ -3,7 +3,7 @@ import User from '../models/user.js'
 import UserPostComment from '../models/userPostComment.js'
 import UserPostValorations from '../models/userPostValoration.js'
 import UserPostRequest from '../models/userPostRequest.js'
-import { validatePostAvailableTimeData } from '../utils/post.js'
+import { validatePostAvailableTimesData } from '../utils/post.js'
 
 //Get all posts controller
 /**
@@ -67,11 +67,7 @@ export const getPostById = async (id) => {
  * @param {string} data.sellerId
  * @param {"oculto" | "activo"} data.status
  * @param {string} data.name
- * @param {object[]} data.availableTime
- * @param {'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday'} data.availableTime.weekDay
- * @param {object[]} data.availableTime.timing
- * @param {Date} data.availableTime.timing.start
- * @param {Date} data.availableTime.timing.end
+ * @param {object} data.availableTimes
  * @return {Promise<object>}
  */
 export const createPost = async ({ data, user }) => {
@@ -128,7 +124,7 @@ export const createPost = async ({ data, user }) => {
   }
 
   if (availableTimes) {
-    validatePostAvailableTimeData(availableTimes)
+    validatePostAvailableTimesData(availableTimes)
   }
 
   const post = new Post({
@@ -190,7 +186,7 @@ export const updatePost = async ({ id, data, user }) => {
   }
 
   if (availableTimes) {
-    validatePostAvailableTimeData(availableTimes)
+    validatePostAvailableTimesData(availableTimes)
     post.availableTimes = availableTimes
   }
 
@@ -286,7 +282,11 @@ export const updatePost = async ({ id, data, user }) => {
  */
 export const deletePostById = async ({ postId, user }) => {
   const post = await getPostById(postId)
-  if (post.sellerId.toString() !== user._id && user.rol !== 'admin') {
+
+  if (
+    post.sellerId.toString() !== user._id.toString() &&
+    user.rol !== 'admin'
+  ) {
     throw new Error('No tienes permiso')
   }
 
