@@ -11,6 +11,7 @@ import {
   addRatingToPostByUser,
   addPostRequestByUser,
   updateRequestStatusBySeller,
+  getPostsByType,
 } from '../controllers/post.js'
 
 const router = express.Router()
@@ -18,7 +19,8 @@ const router = express.Router()
 // Get all posts route
 router.get('/', async (request, response) => {
   try {
-    const posts = await getPosts()
+    console.log(request.query)
+    const posts = await getPosts(request.query)
     response.json({ posts })
   } catch (e) {
     response.status(500).json(e.message)
@@ -152,4 +154,6 @@ router.put('/request/:postId/:requestId', async (request, response) => {
     response.status(500).json(error.message)
   }
 })
+
+
 export default router

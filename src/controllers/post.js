@@ -4,13 +4,45 @@ import UserPostComment from '../models/userPostComment.js'
 import UserPostValorations from '../models/userPostValoration.js'
 import UserPostRequest from '../models/userPostRequest.js'
 import { validatePostAvailableTimesData } from '../utils/post.js'
+import { startOfDay, endOfDay } from 'date-fns'
 
 //Get all posts controller
 /**
  * @return {Promise<object[]>}
  */
-export const getPosts = async () => {
-  return Post.find()
+export const getPosts = async (filters) => {
+  const filtersData = {}
+  if (filters) {
+    if (filters.type) {
+      filtersData.type = filters.type
+    }
+
+    if (filters.fuelType) {
+      filtersData.fuelType = filters.fuelType
+    }
+
+    if (filters.gearBoxType) {
+      filtersData.gearBoxType = filters.gearBoxType
+    }
+
+    if (filters.style) {
+      filtersData.style = filters.style
+    }
+
+    if (filters.name) {
+      filtersData.name = {
+        $regex: filters.name,
+      }
+    }
+
+    if (filters.time) {
+      filtersData.availableTimes = {
+        $in: filters.time.split(','),
+      }
+    }
+  }
+
+  return Post.find(filtersData)
 }
 
 //Get post by id controller
@@ -41,11 +73,9 @@ export const getPostById = async (id) => {
     postId: post._id,
   })
 
-  const totalValorations= postValorations.length
+  const totalValorations = postValorations.length
 
   const averageRating = totalValorations > 0 ? rating / totalValorations : 0
-
-
 
   return {
     ...post.toObject(),
@@ -93,6 +123,7 @@ export const createPost = async ({ data, user }) => {
     status,
     availableTimes,
   } = data
+
   if (!name || !type || !plateNumber || !sellerId) {
     throw new Error('Missing required fields')
   }
@@ -191,7 +222,6 @@ export const updatePost = async ({ id, data, user }) => {
 
   if (availableTimes) {
     validatePostAvailableTimesData(availableTimes)
-    post.availableTimes = availableTimes
   }
 
   if (model) {
@@ -401,7 +431,7 @@ export const addRatingToPostByUser = async ({ postId, data, user }) => {
   }
 
   const post = await getPostById(postId)
-  
+
   const hasRate = await UserPostValorations.findOne({
     customerId: user._id,
     postId: post._id,
@@ -411,12 +441,10 @@ export const addRatingToPostByUser = async ({ postId, data, user }) => {
     throw new Error('You already rate this post!')
   }
 
-
-
   const postRating = new UserPostValorations({
     customerId: user._id,
     postId: post._id,
-    rate: data.rate ,
+    rate: data.rate,
   })
   await postRating.save()
 }
@@ -429,7 +457,7 @@ export const addRatingToPostByUser = async ({ postId, data, user }) => {
  * @param {object} data.time
  */
 export const addPostRequestByUser = async ({ postId, data, user }) => {
-  if (!postId || !data.availableTime) {
+  if (!postId || !data.weekDay) {
     throw new Error('Missing some fields')
   }
 
@@ -476,7 +504,7 @@ export const updateRequestStatusBySeller = async ({ data, requestId }) => {
   if (data.status) {
     if (data.status === 'approved') {
       const sameRequestDay = await UserPostRequest.find({
-        _id: { $not: postRequest._id },
+        _id: { $ne: postRequest._id },
         weekDay: postRequest.weekDay,
         postId: postRequest.postId,
         createdAt: {
@@ -499,4 +527,42 @@ export const updateRequestStatusBySeller = async ({ data, requestId }) => {
   await postRequest.save()
 
   return postRequest
+}
+
+/**
+ * @param {string} type
+ * @return {Promise<Array<object>>}
+ */
+export const getPostsByType = async (type) => {
+  const posts = await Post.find({ type: type })
+
+  const postPromises = posts.map(async (post) => {
+    const postValorations = await UserPostValorations.find({
+      postId: post._id,
+    })
+
+    const rating = postValorations.reduce((accumulator, current) => {
+      return accumulator + current.rate
+    }, 0)
+
+    const totalValorations = postValorations.length
+    const averageRating = totalValorations > 0 ? rating / totalValorations : 0
+
+    const postComments = await UserPostComment.find({
+      postId: post._id,
+    })
+
+    const postRequests = await UserPostRequest.find({
+      postId: post._id,
+    })
+
+    return {
+      ...post.toObject(),
+      comments: postComments,
+      rating: averageRating,
+      requests: postRequests,
+    }
+  })
+
+  return Promise.all(postPromises)
 }

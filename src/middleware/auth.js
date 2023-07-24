@@ -4,7 +4,6 @@ import User from '../models/user.js'
 const publicUrls = ['/auth/login', '/auth/signup']
 
 export const ensureAuthenticated = async (request, response, next) => {
-
   if (publicUrls.includes(request.path)) {
     return next()
   }
@@ -39,7 +38,6 @@ export const ensureAuthenticated = async (request, response, next) => {
     return response.status(403).send({ message: 'Wrong token' })
   }
 
-  console.log({user})
   request.user = user
 
   next()

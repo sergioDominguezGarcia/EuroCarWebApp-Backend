@@ -24,7 +24,7 @@ const userPostValorationSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { collection: 'userPostValidations' }
+  { collection: 'userPostValorations' }
 )
 
 const UserPostValorations = mongoose.model(

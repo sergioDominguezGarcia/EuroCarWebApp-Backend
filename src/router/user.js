@@ -1,5 +1,9 @@
 import express from 'express'
-import { getUsers, getUserById, deleteUserById } from '../controllers/user.js'
+import {
+  getUsers,
+  deleteUserById,
+  getRequestByUser,
+} from '../controllers/user.js'
 
 const router = express.Router()
 
@@ -31,5 +35,16 @@ router.get('/me', async (request, response) => {
     response.status(500).json(error.message)
   }
 })
+
+
+router.get('/me/request', async (request, response) => {
+  try {
+    const postsRequests = await getRequestByUser(request.user)
+    response.json(postsRequests)
+  } catch (error) {
+    response.status(500).json(error.message)
+  }
+})
+
 
 export default router
