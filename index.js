@@ -1,14 +1,18 @@
 import express from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
+import dotenv from 'dotenv'
+
+// import swaggerDocs from "./api/v1/swagger.js"
+
 import postsRouter from './src/router/post.js'
 import usersRouter from './src/router/user.js'
 import authRouter from"./src/router/auth.js"
 import {ensureAuthenticated} from "./src/middleware/auth.js"
-import dotenv from 'dotenv'
 import connectToDb from './src/services/db.js'
-dotenv.config()
 
+
+dotenv.config()
 
 const startApp = async () => {
   const app = express()
@@ -31,7 +35,8 @@ const startApp = async () => {
   try {
     await connectToDb()
     app.listen(port, () => {
-      console.log(`Server start in ${port}`)
+      console.log(`Server start in ${port}`);
+      // swaggerDocs(app, port);
     })
   } catch (e) {
     console.log(e)

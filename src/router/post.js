@@ -10,8 +10,7 @@ import {
   deleteCommentByUser,
   addRatingToPostByUser,
   addPostRequestByUser,
-  updateRequestStatusBySeller,
-  getPostsByType,
+  updateRequestStatusBySeller
 } from '../controllers/post.js'
 
 const router = express.Router()
@@ -148,6 +147,7 @@ router.put('/request/:requestId', async (request, response) => {
     await updateRequestStatusBySeller({
       requestId: request.params.requestId,
       data: request.body,
+      user: request.user,
     })
     response.json(true)
   } catch (error) {

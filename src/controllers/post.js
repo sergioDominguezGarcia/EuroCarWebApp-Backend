@@ -495,7 +495,7 @@ export const addPostRequestByUser = async ({ postId, data, user }) => {
 /**
  * @param {string} requestId
  * @param {object} data
- * @param {'approved | 'pending' | 'rejected' | 'canceled'} data.status
+ * @param {'approve | 'pending' | 'rejected' | 'canceled'} data.status
  */
 export const updateRequestStatusBySeller = async ({
   data,

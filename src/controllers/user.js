@@ -54,7 +54,6 @@ export const getRequestByUser = async (user) => {
   const sellerPosts = await Post.find({
     sellerId: user._id,
   })
-  //
 
   const postsIds = sellerPosts.map((sellerPost) => sellerPost._id)
   return UserPostRequest.find({
