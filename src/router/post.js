@@ -143,17 +143,16 @@ router.post('/:postId/request', async (request, response) => {
 })
 
 // Update request route
-router.put('/request/:postId/:requestId', async (request, response) => {
+router.put('/request/:requestId', async (request, response) => {
   try {
-    await updateRequestStatusBySeller(
-      request.params.postId,
-      request.body,
-      request.user
-    )
+    await updateRequestStatusBySeller({
+      requestId: request.params.requestId,
+      data: request.body,
+    })
+    response.json(true)
   } catch (error) {
     response.status(500).json(error.message)
   }
 })
-
 
 export default router

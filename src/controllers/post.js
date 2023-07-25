@@ -493,16 +493,37 @@ export const addPostRequestByUser = async ({ postId, data, user }) => {
 
 // Update request
 /**
- * @param {string} postId
+ * @param {string} requestId
  * @param {object} data
- * @param {string} data.status
- * @param {object} data.time
+ * @param {'approved | 'pending' | 'rejected' | 'canceled'} data.status
  */
-export const updateRequestStatusBySeller = async ({ data, requestId }) => {
+export const updateRequestStatusBySeller = async ({
+  data,
+  requestId,
+  user,
+}) => {
   const postRequest = await UserPostRequest.findOne({ _id: requestId })
 
+  if (!postRequest) {
+    throw new Error('Post request not found')
+  }
+
+  if (
+    user.rol === 'customer' &&
+    user._id.toString() !== postRequest.customerId.toString()
+  ) {
+    throw new Error('You dont have permission')
+  }
+
+  if (user.rol === 'seller') {
+    const post = await Post.find({ _id: postRequest.postId })
+    if (post.sellerId.toString() !== user._id) {
+      throw new Error('You arent the author of the request')
+    }
+  }
+
   if (data.status) {
-    if (data.status === 'approved') {
+    if (data.status === 'approve') {
       const sameRequestDay = await UserPostRequest.find({
         _id: { $ne: postRequest._id },
         weekDay: postRequest.weekDay,
@@ -527,42 +548,4 @@ export const updateRequestStatusBySeller = async ({ data, requestId }) => {
   await postRequest.save()
 
   return postRequest
-}
-
-/**
- * @param {string} type
- * @return {Promise<Array<object>>}
- */
-export const getPostsByType = async (type) => {
-  const posts = await Post.find({ type: type })
-
-  const postPromises = posts.map(async (post) => {
-    const postValorations = await UserPostValorations.find({
-      postId: post._id,
-    })
-
-    const rating = postValorations.reduce((accumulator, current) => {
-      return accumulator + current.rate
-    }, 0)
-
-    const totalValorations = postValorations.length
-    const averageRating = totalValorations > 0 ? rating / totalValorations : 0
-
-    const postComments = await UserPostComment.find({
-      postId: post._id,
-    })
-
-    const postRequests = await UserPostRequest.find({
-      postId: post._id,
-    })
-
-    return {
-      ...post.toObject(),
-      comments: postComments,
-      rating: averageRating,
-      requests: postRequests,
-    }
-  })
-
-  return Promise.all(postPromises)
 }
