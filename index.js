@@ -17,9 +17,9 @@ dotenv.config()
 const startApp = async () => {
   const app = express()
   const port = process.env.PORT
-
-  app.use(ensureAuthenticated)
   app.use(cors())
+  app.use(ensureAuthenticated)
+
   app.use(bodyParser.json())
   app.use(
     bodyParser.urlencoded({
